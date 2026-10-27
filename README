@@ -1,1 +1,126 @@
-#Simulacion de Comunidad Neuston en las Costas Asturianas
+# Estimación de nichos en una comunidad de plancton superficial simulada
+
+Trabajo de fin de curso (TFC) de **Herramientas Científicas para el Análisis y Modelización de Datos**
+---
+
+## Pregunta
+
+¿Cuánto esfuerzo de muestreo hace falta para recuperar correctamente el nicho de cada especie
+(óptimo y tolerancia térmica) a lo largo de un gradiente costa–océano?
+Se presta especial atención a las especies **raras** y a las que tienen el **óptimo en el extremo** del gradiente muestreado.
+
+## Motivación
+
+El proyecto [PHYSALIA](https://www.unioviedo.es/physalia/) (Universidad de Oviedo e IEO-CSIC) estudia qué factores
+determinan la distribución y la abundancia de la carabela portuguesa (*Physalia physalis*) en el Atlántico nororiental.
+En Asturias, la carabela está en el límite de su distribución, justo donde las estimaciones del nicho son menos fiables.
+
+Este trabajo **no usa datos de PHYSALIA**. Usa una comunidad simulada porque, a diferencia de los datos de campo,
+permite conocer de antemano los nichos verdaderos y comprobar si los métodos de análisis los recuperan.
+
+## Modelo
+
+Cada especie *j* responde a la temperatura *T* con una curva gaussiana:
+
+```
+λ_ij = a_j · exp( −(T_i − u_j)² / (2 · t_j²) )
+```
+
+- `u_j`: óptimo (°C)
+- `t_j`: tolerancia (°C)
+- `a_j`: abundancia máxima
+
+Los conteos observados se generan como `Poisson(λ_ij)`.
+
+**Los parámetros de nicho de `parametros.csv` son hipotéticos.** Los nombres de especie son reales y comunes en el
+Cantábrico, pero sus óptimos y tolerancias no proceden de mediciones.
+
+## Especies
+
+| Especie | Grupo | Categoría en la simulación | Referencia de presencia |
+|---|---|---|---|
+| *Acartia clausi* | Copépodo | común | Valdés et al., ICES J. Mar. Sci. |
+| *Calanus helgolandicus* | Copépodo | común | Valdés et al., ICES J. Mar. Sci. |
+| *Rhizostoma pulmo* | Escifozoo | óptimo en el extremo | MITECO (2009) |
+| *Aurelia aurita* | Escifozoo | rara | MITECO (2009) |
+| *Chrysaora hysoscella* | Escifozoo | común | MITECO (2009) |
+| *Pelagia noctiluca* | Escifozoo | común | Mariottini et al. (2008); MITECO (2009) |
+| *Velella velella* | Hidrozoo (neuston) | común | MITECO (2009) |
+| *Physalia physalis* | Sifonóforo (neuston) | óptimo en el extremo | Proyecto PHYSALIA; MITECO (2009) |
+
+Las referencias documentan la **presencia** de las especies, no sus nichos térmicos.
+
+## Herramientas
+
+| Librería | Uso |
+|---|---|
+| NumPy | Matriz de abundancias con broadcasting, conteos Poisson, índices de diversidad vectorizados |
+| SciPy | `CubicSpline` (temperatura), `curve_fit` y `minimize` (ajuste de nichos), `linkage`/`kmeans2` (agrupamiento), `mannwhitneyu` |
+| pandas | Tablas de muestreo (`melt`, `pivot_table`, `groupby`) |
+| Matplotlib | Figuras de nichos, error frente a esfuerzo, mapa de calor y dendrograma |
+
+## Estructura del repositorio
+
+```
+.
+├── README.md
+├── parametros.csv        # nichos hipotéticos de las 8 especies
+├── ver_parametros.py     # fase 0: dibuja los nichos para revisarlos
+├── modelo.py             # fase 1: abundancias esperadas y conteos      (pendiente)
+├── interpolacion.py      # fase 2: perfil de temperatura                (pendiente)
+├── tablas.py             # fase 3: tablas con pandas                    (pendiente)
+├── indices.py            # fase 4: diversidad                           (pendiente)
+├── ajuste.py             # fase 5: curve_fit y máxima verosimilitud     (pendiente)
+├── esfuerzo.py           # fase 6: experimento de esfuerzo de muestreo  (pendiente)
+├── comunidad.py          # fase 7: agrupamiento y contrastes            (pendiente)
+├── figuras.py            # fase 8: figuras finales                      (pendiente)
+├── main.py               # ejecuta todo el flujo                        (pendiente)
+└── figuras/
+```
+
+## Instalación y uso
+
+Requiere Python 3.10 o posterior.
+
+```bash
+pip install numpy scipy pandas matplotlib
+python3 ver_parametros.py          # revisa los nichos hipotéticos
+python3 modelo.py                  # ejecuta las pruebas de un módulo
+python3 main.py                    # flujo completo (cuando exista)
+```
+
+Todas las simulaciones usan una semilla fija (`np.random.default_rng(semilla)`), así que los resultados son reproducibles.
+
+## Estado
+
+| Fase | Contenido | Estado |
+|---|---|---|
+| 0 | Parámetros de las especies | hecha |
+| 1 | Modelo y conteos (NumPy) | pendiente |
+| 2 | Temperatura interpolada (CubicSpline) | pendiente |
+| 3 | Tablas (pandas) | pendiente |
+| 4 | Índices de diversidad (secundaria) | pendiente |
+| 5 | Ajuste de nichos: `curve_fit` frente a máxima verosimilitud de Poisson | pendiente |
+| 6 | Experimento de esfuerzo de muestreo | pendiente |
+| 7 | Agrupamiento y contrastes (secundaria) | pendiente |
+| 8 | Figuras | pendiente |
+
+## Limitaciones
+
+- La respuesta gaussiana simétrica es una idealización; en comunidades reales las respuestas son a menudo asimétricas.
+- Los parámetros de nicho son hipotéticos, así que los resultados evalúan los **métodos**, no describen una comunidad real.
+- La presencia de *Physalia* y *Velella* depende mucho del transporte por viento y corrientes, no solo de la temperatura.
+- Las especies incluidas no forman una comunidad muestreable con una sola red: hay neuston, medusas epipelágicas y copépodos.
+
+## Uso de inteligencia artificial
+
+Se ha usado un asistente de IA como tutor: para revisar el código, proponer pruebas y explicar conceptos.
+El código de análisis está escrito por el autor.
+
+## Referencias
+
+- Mariottini G.L., Giacco E., Pane L. (2008). The mauve stinger *Pelagia noctiluca* (Forsskål, 1775). Distribution, ecology, toxicity and epidemiology of stings. A review. *Marine Drugs* 6: 496–513. https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2579739/
+- Ministerio de Medio Ambiente, y Medio Rural y Marino (2009). *Medusas: experiencias y resultados de la Campaña Medusas.* https://www.miteco.gob.es/content/dam/miteco/es/costas/campanas/campana-medusas/Medusas_expe_resultados_tcm30-157158.pdf
+- Valdés L., López-Urrutia A., Cabal J., et al. (2007). A decade of sampling in the Bay of Biscay: What are the zooplankton time series telling us? *Progress in Oceanography* 74: 98–114. https://doi.org/10.1016/j.pocean.2007.04.016
+- Valdés L., López-Urrutia A., Beaugrand G., Harris R.P., Irigoien X. Seasonality and interannual variability of copepods in the Western English Channel, Celtic Sea, Bay of Biscay, and Cantabrian Sea with a special emphasis to *Calanus helgolandicus* and *Acartia clausi*. *ICES Journal of Marine Science*.
+- Proyecto PHYSALIA, Universidad de Oviedo. https://www.unioviedo.es/physalia/
